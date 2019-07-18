@@ -964,6 +964,17 @@ params = CGI.parse(uri.query || "")
   def run_assets_precompile_rake_task
     instrument 'ruby.run_assets_precompile_rake_task' do
 
+      webpacker_precompile = rake.task("webpacker:compile")
+      return true unless webpacker_precompile.is_defined?
+
+      topic "Precompiling assets"
+      webpacker_precompile.invoke(env: rake_env)
+      if webpacker_precompile.success?
+        puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
+      else
+        precompile_fail(webpacker_precompile.output)
+      end
+
       precompile = rake.task("assets:precompile")
       return true unless precompile.is_defined?
 
